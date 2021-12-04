@@ -108,8 +108,58 @@ fn dump_board(board: &str) {
 
     println!(" ------ ");
 }
-fn main() {
-    let board = random_board(100);
-    println!("{}", board);
+
+fn dump_solution(initial_board: &str, solution: Vec<usize>) {
+    println!("------- SOLUTION  BEGIN-------");
+
+    let mut board = initial_board.to_string();
+
+    println!("[Initial]");
     dump_board(&board);
+
+    for (i, &operation) in solution.iter().enumerate() {
+        println!("#{}", i);
+        board = move_tile(&board, operation);
+        dump_board(&board);
+    }
+
+    println!("-------- SOLUTION END --------");
+}
+fn main() {
+    let aligned_board = aligned_board();
+    let board = random_board(100);
+
+    let max_iteration = 10000;
+
+    let mut queue = vec![(board.to_string(), vec![], '0')];
+
+    for i in 0..max_iteration {
+        let mut new_queue = vec![];
+
+        for (current_board, history, last_moved_char) in queue {
+            let tiles = list_movable_tiles(&current_board);
+
+            for tile in tiles {
+                let moving_char = current_board.chars().nth(tile).unwrap();
+
+                if last_moved_char != moving_char {
+                    let mut new_history = history.to_vec();
+                    let new_board = move_tile(&current_board, tile);
+                    new_history.push(tile);
+
+                    if new_board.eq(&aligned_board) {
+                        println!("Solved in {} iterations.", i);
+                        dump_solution(&board, new_history);
+                        return;
+                    } else {
+                        new_queue.push((new_board, new_history, moving_char));
+                    }
+                }
+            }
+        }
+
+        queue = new_queue;
+    }
+
+    println!("Coundn't solve in {} iterations.", max_iteration);
 }
