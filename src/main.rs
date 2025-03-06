@@ -52,20 +52,27 @@ fn test_move_tile() {
     assert!(move_tile("023456781", 0).eq("023456781"));
 }
 
-fn list_movable_tiles(board: &str) -> Vec<usize> {
-    let empty_pos = find_empty_pos(board);
-
-    if empty_pos > 3 {
-        vec![empty_pos - 3, empty_pos - 1, empty_pos + 1, empty_pos + 3]
-    } else if empty_pos > 1 {
-        vec![empty_pos - 1, empty_pos + 3, empty_pos + 1]
+fn list_tiles_around(centre_pos: usize) -> Vec<usize> {
+    if centre_pos > 3 {
+        vec![
+            centre_pos - 3,
+            centre_pos - 1,
+            centre_pos + 1,
+            centre_pos + 3,
+        ]
+    } else if centre_pos > 1 {
+        vec![centre_pos - 1, centre_pos + 3, centre_pos + 1]
     } else {
-        vec![empty_pos + 1, empty_pos + 3]
+        vec![centre_pos + 1, centre_pos + 3]
     }
     .iter()
-    .filter(|&&x| (empty_pos / 3 == x / 3 || empty_pos % 3 == x % 3) && x < 9)
+    .filter(|&&x| (centre_pos / 3 == x / 3 || centre_pos % 3 == x % 3) && x < 9)
     .map(|&x| x)
     .collect()
+}
+
+fn list_movable_tiles(board: &str) -> Vec<usize> {
+    list_tiles_around(find_empty_pos(board))
 }
 
 #[test]
@@ -125,6 +132,72 @@ fn dump_solution(initial_board: &str, solution: Vec<usize>) {
 
     println!("-------- SOLUTION END --------");
 }
+
+fn generate_fuzzy_board(
+    top: Option<char>,
+    bottom: Option<char>,
+    right: Option<char>,
+    left: Option<char>,
+    me: char,
+) -> String {
+    let mut base = "*********".to_string();
+    // Insert self
+
+    let row = match top.is_some() {
+        true => match bottom.is_some() {
+            true => 1,  // middle row
+            false => 2, // bottom row
+        },
+        false => match bottom.is_some() {
+            true => 0, // top row
+            false => {
+                //Unreachable
+                panic!("Unexpected position");
+            }
+        },
+    };
+
+    let col = match right.is_some() {
+        true => match left.is_some() {
+            true => 1,  // middle col
+            false => 0, // left row
+        },
+        false => match left.is_some() {
+            true => 2, // right row
+            false => {
+                //Unreachable
+                panic!("Unexpected position");
+            }
+        },
+    };
+
+    let my_pos = row * 3 + col;
+    base.replace_range(my_pos..my_pos + 1, &me.to_string());
+
+    if let Some(top) = top {
+        base.replace_range(my_pos - 3..my_pos - 2, &top.to_string());
+    }
+
+    if let Some(bottom) = bottom {
+        base.replace_range(my_pos + 3..my_pos + 4, &bottom.to_string());
+    }
+
+    if let Some(left) = left {
+        base.replace_range(my_pos - 1..my_pos, &left.to_string());
+    }
+
+    if let Some(right) = right {
+        base.replace_range(my_pos + 1..my_pos + 2, &right.to_string());
+    }
+
+    base
+}
+
+fn list_fuzzy_board_possibility(fuzzy_board: String) -> Vec<String> {
+    let chars = ['0'..'8']
+    let board = generate_fuzzy_board(top, bottom, right, left, me);
+}
+
 fn main() {
     let aligned_board = aligned_board();
     let board = random_board(100);
