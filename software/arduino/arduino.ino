@@ -1,7 +1,11 @@
 #include <Wire.h>
 #include <SPI.h>
+#include <GRGB.h>
+#include <Ticker.h>
 #include "pin_config.h"
 
+GRGB led(COMMON_ANODE, PIN_LED_R, PIN_LED_G, PIN_LED_B);
+Ticker led_ticker;
 
 void print_aa_logo(void){
 	Serial.println();
@@ -29,15 +33,36 @@ void configure_buzzer(void){
 	}
 }
 
+void configure_led(void){
+	Serial.println(F("Configuring LED..."));
+	led.setBrightness(255);
+
+	for(uint8_t i=0; i<255; i++){
+		led.setWheel8(i);
+		delay(10);
+	}
+
+	led.setBrightness(255);
+	led_ticker.attach_ms(500, toggle_led);
+}
+
+void toggle_led(void){
+	static bool led_state = false;
+	led_state = !led_state;
+
+	if(led_state) led.setRGB(0, 0, 0);
+	else led.setRGB(255, 255 , 255);
+}
+
 void setup() {
   Serial.begin(115200);
 	print_aa_logo();
 	Serial.println(F("Starting..."));
 	configure_buzzer();
+	configure_led();
 }
 
 void loop() {
-  Serial.println();
 	Serial.println(F("Hello World!"));
 	delay(2000);
 }
