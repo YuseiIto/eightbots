@@ -18,8 +18,8 @@ const int PIN_LED_B = 19;
 const int PIN_BUZZER = 17;
 
 const int PIN_MPU_INT = 18;
-const int PIN_SDA = 21;
-const int PIN_SCL = 22;
+const int PIN_SDA = 22;
+const int PIN_SCL = 21;
 
 const int PIN_MOTOR_AIN1 = 32;
 const int PIN_MOTOR_AIN2 = 25;

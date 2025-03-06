@@ -2,10 +2,19 @@
 #include <SPI.h>
 #include <GRGB.h>
 #include <Ticker.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1
+
 #include "pin_config.h"
 
 GRGB led(COMMON_ANODE, PIN_LED_R, PIN_LED_G, PIN_LED_B);
 Ticker led_ticker;
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void print_aa_logo(void){
 	Serial.println();
@@ -18,6 +27,17 @@ void print_aa_logo(void){
 	Serial.println(F("           __/ |                              "));
 	Serial.println(F("          |___/                               "));
 	Serial.println();
+}
+
+
+void configure_oled(void){
+	Serial.println(F("Configuring OLED..."));
+	if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+    Serial.println(F("SSD1306 allocation failed"));
+		while(1);
+  }
+
+	display.display();
 }
 
 void configure_buzzer(void){
@@ -60,6 +80,9 @@ void setup() {
 	Serial.println(F("Starting..."));
 	configure_buzzer();
 	configure_led();
+
+	Wire.begin(PIN_SDA, PIN_SCL);
+	configure_oled();
 }
 
 void loop() {
