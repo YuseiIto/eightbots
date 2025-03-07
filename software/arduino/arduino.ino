@@ -4,6 +4,7 @@
 #include <Ticker.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <ESP32Encoder.h>
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -13,6 +14,7 @@
 
 GRGB led(COMMON_ANODE, PIN_LED_R, PIN_LED_G, PIN_LED_B);
 Ticker led_ticker;
+ESP32Encoder encoder;
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -38,6 +40,14 @@ void configure_oled(void){
   }
 
 	display.display();
+}
+
+void configure_rotary_encoder(void){
+	Serial.println(F("Configuring rotary encoder..."));
+	ESP32Encoder::useInternalWeakPullResistors = puType::up;
+	pinMode(PIN_ROT_SW, INPUT_PULLUP);
+	encoder.attachHalfQuad(PIN_ROT_A, PIN_ROT_B);
+	encoder.clearCount();
 }
 
 void configure_buzzer(void){
@@ -83,10 +93,16 @@ void setup() {
 
 	Wire.begin(PIN_SDA, PIN_SCL);
 	configure_oled();
+	configure_rotary_encoder();
 }
 
 void loop() {
-	Serial.println(F("Hello World!"));
-	delay(2000);
+	Serial.print("count: ");
+	Serial.print(encoder.getCount());
+	Serial.print(" SW: ");
+	Serial.print(digitalRead(PIN_ROT_SW));
+	Serial.println();
+	delay(50);
 }
+
 
