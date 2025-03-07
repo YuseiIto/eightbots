@@ -12,3 +12,5 @@ Cargo.lock
 
 **/.arduino_port
 **/.ccls-cache
+
+**/.envrc

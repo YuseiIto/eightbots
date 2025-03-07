@@ -1,0 +1,2 @@
+export WIFI_SSID=/* Put your SSID here */
+export WIFI_PASSWORD=/* Put your password here */

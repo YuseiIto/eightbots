@@ -3,12 +3,13 @@ ARDUINO_CLI:=arduino-cli
 ARDUINO_PORT_FILE:= .arduino_port
 BAUDRATE := 115200
 
+
 check-arduino-cli:
 	@which $(ARDUINO_CLI) > /dev/null || (echo "Error: arduino-cli not installed." && exit 1)
 
 .PHONY: compile
 compile: check-arduino-cli
-	$(ARDUINO_CLI) compile --fqbn=$(FQBN) .
+	$(ARDUINO_CLI) compile --fqbn=$(FQBN) --build-property "build.defines=-DWIFI_SSID=\"${WIFI_SSID}\" -DWIFI_PASSWORD=\"${WIFI_PASSWORD}\"" .
 
 .PHONY: upload
 upload: check-arduino-cli check-port
