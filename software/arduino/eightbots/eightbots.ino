@@ -50,6 +50,11 @@ void configure_wifi(void){
 
   Serial.print("WiFi Ready. IP address: ");
   Serial.println(WiFi.localIP());
+
+
+  digitalWrite(PIN_BUZZER, HIGH);
+  delay(500);
+  digitalWrite(PIN_BUZZER, LOW);
 }
 
 void configure_ota(void){
