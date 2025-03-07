@@ -10,7 +10,6 @@ check-arduino-cli:
 compile: check-arduino-cli
 	$(ARDUINO_CLI) compile --fqbn=$(FQBN) .
 
-
 .PHONY: upload
 upload: check-arduino-cli check-port
 	$(ARDUINO_CLI) upload --fqbn=$(FQBN) -p $$(cat $(ARDUINO_PORT_FILE)) .
