@@ -1,4 +1,6 @@
 FQBN:=esp32:esp32:esp32:JTAGAdapter=default,PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=115200,LoopCore=1,EventsCore=1,DebugLevel=none,EraseFlash=all,ZigbeeMode=default
+PORTS:=$(shell arduino-cli board list | cut -d " " -f 1 | tail -n +2)
+
 ARDUINO_CLI:=arduino-cli
 ARDUINO_PORT_FILE:= .arduino_port
 BAUDRATE := 115200
@@ -32,14 +34,14 @@ check-port:
 	fi
 	@PORT=$$(cat $(ARDUINO_PORT_FILE));\
 	echo "Checking if $$PORT exists...";\
-	if [ ! -e "$$PORT" ]; then \
+	if [ ! "`echo $(PORTS) | grep $$PORT`" ]; then \
 		echo "Error: Port $$PORT does not exist. Run \`make set-port\` beforehead."; \
 		exit 1;\
 	fi
 
 .PHONY: set-port
 set-port: check-arduino-cli
-	@PORT=$$(ls /dev/tty.* | xargs gum choose --header="Select a port:");\
+	@PORT=$$(echo $(PORTS) | xargs gum choose --header="Select a port:");\
 	if([ -z "$$PORT" ]); then \
 		echo "Error: No port selected";\
 		exit 1;\
