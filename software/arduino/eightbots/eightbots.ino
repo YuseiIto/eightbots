@@ -19,6 +19,7 @@
 
 GRGB led(COMMON_ANODE, PIN_LED_R, PIN_LED_G, PIN_LED_B);
 Ticker led_ticker;
+Ticker motor_ticker;
 ESP32Encoder encoder;
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
@@ -140,12 +141,45 @@ void configure_led(void){
 	led_ticker.attach_ms(500, toggle_led);
 }
 
+void configure_motor(void){
+  Serial.println(F("Configuring motor..."));
+  pinMode(PIN_MOTOR_AIN1, OUTPUT);
+  pinMode(PIN_MOTOR_AIN2, OUTPUT);
+  pinMode(PIN_MOTOR_BIN1, OUTPUT);
+  pinMode(PIN_MOTOR_BIN2, OUTPUT);
+
+  // Stop the motor
+  digitalWrite(PIN_MOTOR_AIN1, HIGH);
+  digitalWrite(PIN_MOTOR_AIN2, HIGH);
+  digitalWrite(PIN_MOTOR_BIN1, HIGH);
+  digitalWrite(PIN_MOTOR_BIN2, HIGH);
+  motor_ticker.attach_ms(100, change_motor_speed);
+}
+
 void toggle_led(void){
 	static bool led_state = false;
 	led_state = !led_state;
 
 	if(led_state) led.setRGB(0, 0, 0);
 	else led.setRGB(255, 255 , 255);
+}
+
+void change_motor_speed(){
+  static float x = 0;
+  // sin wave
+  x += 0.1;
+  int dutyCycle = 256 * sin(x);
+  if (dutyCycle<0){
+    analogWrite(PIN_MOTOR_AIN1, abs(dutyCycle));
+    analogWrite(PIN_MOTOR_AIN2, 0);
+    analogWrite(PIN_MOTOR_BIN1, abs(dutyCycle));
+    analogWrite(PIN_MOTOR_BIN2, 0);
+  }else{
+    analogWrite(PIN_MOTOR_AIN1, 0);
+    analogWrite(PIN_MOTOR_AIN2, dutyCycle);
+    analogWrite(PIN_MOTOR_BIN1, 0);
+    analogWrite(PIN_MOTOR_BIN2, dutyCycle);
+  }
 }
 
 void setup() {
@@ -160,6 +194,8 @@ void setup() {
 	configure_rotary_encoder();
 	configure_wifi();
 	configure_ota();
+
+  configure_motor();
 }
 
 void loop() {
