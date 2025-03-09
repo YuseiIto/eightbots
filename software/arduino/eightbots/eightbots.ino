@@ -165,6 +165,12 @@ void configure_motor(void){
   pinMode(PIN_MOTOR_BIN1, OUTPUT);
   pinMode(PIN_MOTOR_BIN2, OUTPUT);
 
+  const int resolution = 8; // bits
+  analogWriteResolution(PIN_MOTOR_AIN1, resolution);
+  analogWriteResolution(PIN_MOTOR_AIN2, resolution);
+  analogWriteResolution(PIN_MOTOR_BIN1, resolution);
+  analogWriteResolution(PIN_MOTOR_BIN2, resolution);
+
   // Stop the motor
   digitalWrite(PIN_MOTOR_AIN1, HIGH);
   digitalWrite(PIN_MOTOR_AIN2, HIGH);
