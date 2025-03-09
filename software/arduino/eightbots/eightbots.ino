@@ -171,6 +171,12 @@ void configure_motor(void){
   analogWriteResolution(PIN_MOTOR_BIN1, resolution);
   analogWriteResolution(PIN_MOTOR_BIN2, resolution);
 
+  const int frequency = 50000; // Hz
+  analogWriteFrequency(PIN_MOTOR_AIN1, frequency); 
+  analogWriteFrequency(PIN_MOTOR_AIN2, frequency);
+  analogWriteFrequency(PIN_MOTOR_BIN1, frequency);
+  analogWriteFrequency(PIN_MOTOR_BIN2, frequency);
+
   // Stop the motor
   digitalWrite(PIN_MOTOR_AIN1, HIGH);
   digitalWrite(PIN_MOTOR_AIN2, HIGH);
