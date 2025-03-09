@@ -4,6 +4,7 @@
 #include <Ticker.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "MPU6050_6Axis_MotionApps20.h"
 #include <ESP32Encoder.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
@@ -23,6 +24,19 @@ Ticker motor_ticker;
 ESP32Encoder encoder;
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+MPU6050 mpu;
+
+/*---MPU6050 Control/Status Variables---*/
+bool DMPReady = false;  // Set true if DMP init was successful
+uint8_t FIFOBuffer[64]; // FIFO storage buffer
+
+/*------Interrupt detection routine------*/
+volatile bool MPUInterrupt = false;     // Indicates whether MPU6050 interrupt pin has gone high
+void DMPDataReady() {
+  MPUInterrupt = true;
+}
+
 
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
@@ -159,6 +173,52 @@ void configure_motor(void){
   motor_ticker.attach_ms(100, change_motor_speed);
 }
 
+
+void configure_mpu(void){
+  Serial.println(F("Configuring MPU6050..."));
+  mpu.initialize();
+  pinMode(PIN_MPU_INT, INPUT);
+
+  if(mpu.testConnection() == false){
+    Serial.println(F("MPU6050 connection failed"));
+    while(true);
+  }
+
+  uint8_t devStatus = mpu.dmpInitialize();   // Return status after each device operation (0 = success, !0 = error)
+  mpu.setXGyroOffset(0);
+  mpu.setYGyroOffset(0);
+  mpu.setZGyroOffset(0);
+  mpu.setXAccelOffset(0);
+  mpu.setYAccelOffset(0);
+  mpu.setZAccelOffset(0);
+
+  if (devStatus == 0) {
+    mpu.CalibrateAccel(6);  // Calibration Time: generate offsets and calibrate our MPU6050
+    mpu.CalibrateGyro(6);
+    Serial.println("These are the Active offsets: ");
+    mpu.PrintActiveOffsets();
+    Serial.println(F("Enabling DMP..."));   //Turning ON DMP
+    mpu.setDMPEnabled(true);
+
+    /*Enable Arduino interrupt detection*/
+    Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
+    Serial.print(digitalPinToInterrupt(PIN_MPU_INT));
+    Serial.println(F(")..."));
+    attachInterrupt(digitalPinToInterrupt(PIN_MPU_INT), DMPDataReady, RISING);
+
+    /* Set the DMP Ready flag so the main loop() function knows it is okay to use it */
+    Serial.println(F("DMP ready! Waiting for first interrupt..."));
+    DMPReady = true;
+  } 
+  else {
+    Serial.print(F("DMP Initialization failed (code ")); //Print the error code    Serial.print(devStatus);
+    Serial.println(F(")"));
+    // 1 = initial memory load failed
+    // 2 = DMP configuration updates failed
+  }
+}
+
+
 void toggle_led(void){
 	static bool led_state = false;
 	led_state = !led_state;
@@ -212,7 +272,24 @@ void loop() {
 	Serial.print(" SW: ");
 	Serial.print(digitalRead(PIN_ROT_SW));
 	Serial.println();
-	delay(50);
+
+  if (!DMPReady) return;
+  if (mpu.dmpGetCurrentFIFOPacket(FIFOBuffer)) {
+    Quaternion q;           // [w, x, y, z]         Quaternion container
+    float ypr[3];           // [yaw, pitch, roll]   Yaw/Pitch/Roll container and gravity vector
+    VectorFloat gravity;    // [x, y, z]            Gravity vector
+
+    mpu.dmpGetQuaternion(&q, FIFOBuffer);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.print("Yaw(rad): ");
+    display.println(ypr[0], 1);
+
+    display.display();
+  }
+
 }
 
 
