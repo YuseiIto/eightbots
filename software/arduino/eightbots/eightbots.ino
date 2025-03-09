@@ -194,6 +194,8 @@ void setup() {
 	configure_rotary_encoder();
 
 	Wire.begin(PIN_SDA, PIN_SCL);
+  Wire.setClock(400000);
+
 	configure_oled();
   configure_mpu();
 
