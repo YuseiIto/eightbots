@@ -10,6 +10,7 @@
 #include <ESPmDNS.h>
 #include <NetworkUdp.h>
 #include <ArduinoOTA.h>
+#include <PID_v1.h>
 
 
 #define SCREEN_WIDTH 128
@@ -26,6 +27,14 @@ ESP32Encoder encoder;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 MPU6050 mpu;
+
+double travel = 0; // positive: forward, negative: backward
+
+double yaw;
+double rotation = 0; // positive: right, negative: left
+double setpoint = 0;
+
+PID pid(&yaw, &rotation, &setpoint, 0.45,0.11, 0.03, REVERSE);
 
 /*---MPU6050 Control/Status Variables---*/
 bool DMPReady = false;  // Set true if DMP init was successful
@@ -75,6 +84,8 @@ void configure_wifi(void){
 void configure_ota(void){
   ArduinoOTA
     .onStart([]() {
+      rotation = 0;
+      travel = 0;
       String type;
       if (ArduinoOTA.getCommand() == U_FLASH) {
         type = "sketch";
@@ -182,7 +193,7 @@ void configure_motor(void){
   digitalWrite(PIN_MOTOR_AIN2, HIGH);
   digitalWrite(PIN_MOTOR_BIN1, HIGH);
   digitalWrite(PIN_MOTOR_BIN2, HIGH);
-  motor_ticker.attach_ms(100, change_motor_speed);
+  motor_ticker.attach_ms(50, change_motor_speed);
 }
 
 
@@ -239,8 +250,6 @@ void toggle_led(void){
 	else led.setRGB(255, 255 , 255);
 }
 
-double travel = 0; // positive: forward, negative: backward
-double rotation = 0; // positive: right, negative: left
 
 void change_motor_speed(){
   double l = travel-rotation;
@@ -282,6 +291,10 @@ void setup() {
 	configure_ota();
 
   configure_motor();
+
+  pid.SetMode(AUTOMATIC);
+  pid.SetOutputLimits(-1.0, 1.0);
+  pid.SetSampleTime(10);
 }
 
 void loop() {
@@ -301,12 +314,13 @@ void loop() {
     mpu.dmpGetQuaternion(&q, FIFOBuffer);
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+    yaw = ypr[0];
+
+    pid.Compute();
     display.clearDisplay();
     display.setCursor(0, 0);
     display.print("Yaw(rad): ");
-    display.println(ypr[0], 1);
-
-    rotation = ypr[0]* 1.05/3.14;
+    display.println(yaw, 1);
     display.display();
   }
 
