@@ -104,7 +104,10 @@ void configure_oled(void){
 		while(1);
   }
 
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
 	display.display();
+  display.setRotation(0);
 }
 
 void configure_rotary_encoder(void){
