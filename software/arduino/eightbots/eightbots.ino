@@ -191,11 +191,13 @@ void setup() {
 	Serial.println(F("Starting..."));
 	configure_buzzer();
 	configure_led();
+	configure_rotary_encoder();
 
 	Wire.begin(PIN_SDA, PIN_SCL);
 	configure_oled();
-	configure_rotary_encoder();
-	configure_wifi();
+  configure_mpu();
+
+  configure_wifi();
 	configure_ota();
 
   configure_motor();
