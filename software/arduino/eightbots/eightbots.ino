@@ -21,7 +21,6 @@
 
 GRGB led(COMMON_ANODE, PIN_LED_R, PIN_LED_G, PIN_LED_B);
 Ticker led_ticker;
-Ticker motor_ticker;
 ESP32Encoder encoder;
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
@@ -182,7 +181,7 @@ void configure_motor(void){
   analogWriteResolution(PIN_MOTOR_BIN1, resolution);
   analogWriteResolution(PIN_MOTOR_BIN2, resolution);
 
-  const int frequency = 50000; // Hz
+  const int frequency = 100000; // Hz
   analogWriteFrequency(PIN_MOTOR_AIN1, frequency); 
   analogWriteFrequency(PIN_MOTOR_AIN2, frequency);
   analogWriteFrequency(PIN_MOTOR_BIN1, frequency);
@@ -193,7 +192,13 @@ void configure_motor(void){
   digitalWrite(PIN_MOTOR_AIN2, HIGH);
   digitalWrite(PIN_MOTOR_BIN1, HIGH);
   digitalWrite(PIN_MOTOR_BIN2, HIGH);
-  motor_ticker.attach_ms(50, change_motor_speed);
+}
+
+void stop_motors(){
+  digitalWrite(PIN_MOTOR_AIN1, HIGH);
+  digitalWrite(PIN_MOTOR_AIN2, HIGH);
+  digitalWrite(PIN_MOTOR_BIN1, HIGH);
+  digitalWrite(PIN_MOTOR_BIN2, HIGH);
 }
 
 
@@ -273,6 +278,8 @@ void change_motor_speed(){
   }
 }
 
+Ticker forward_ticker;
+
 void setup() {
   Serial.begin(115200);
 	print_aa_logo();
@@ -295,6 +302,17 @@ void setup() {
   pid.SetMode(AUTOMATIC);
   pid.SetOutputLimits(-1.0, 1.0);
   pid.SetSampleTime(10);
+
+}
+
+
+void set_forward(){
+  travel = 0.3;
+  forward_ticker.once_ms(3000, reset_forward);
+}
+
+void reset_forward(){
+  travel = 0;
 }
 
 void loop() {
@@ -324,6 +342,14 @@ void loop() {
     display.display();
   }
 
+  static int last_sw_state = HIGH;
+  int current_sw_state = digitalRead(PIN_ROT_SW);
+  if(current_sw_state == LOW){
+    set_forward();
+  }
+  last_sw_state = current_sw_state;
+
+  change_motor_speed();
 }
 
 
