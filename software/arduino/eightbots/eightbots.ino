@@ -34,7 +34,7 @@ double yaw;
 double rotation = 0; // positive: right, negative: left
 double setpoint = 0;
 
-PID pid(&yaw, &rotation, &setpoint, 0.45,0.11, 0.03, REVERSE);
+PID pid(&yaw, &rotation, &setpoint, 0.4,0.11, 0.03, DIRECT);
 
 /*---MPU6050 Control/Status Variables---*/
 bool DMPReady = false;  // Set true if DMP init was successful
@@ -255,21 +255,21 @@ void change_motor_speed(){
   double l = travel-rotation;
   uint8_t lduty = min(abs(l),1.0)*255;
   if (l<0){
-    analogWrite(PIN_MOTOR_AIN1, lduty);
-    analogWrite(PIN_MOTOR_AIN2, 0);
-  }else{
     analogWrite(PIN_MOTOR_AIN1, 0);
     analogWrite(PIN_MOTOR_AIN2, lduty);
+  }else{
+    analogWrite(PIN_MOTOR_AIN1, lduty);
+    analogWrite(PIN_MOTOR_AIN2, 0);
   }
 
   double r = travel+rotation;
   uint8_t rduty = min(abs(r),1.0)*255;
   if (r<0){
-    analogWrite(PIN_MOTOR_BIN1, rduty);
-    analogWrite(PIN_MOTOR_BIN2, 0);
-  }else{
     analogWrite(PIN_MOTOR_BIN1, 0);
     analogWrite(PIN_MOTOR_BIN2, rduty);
+  }else{
+    analogWrite(PIN_MOTOR_BIN1, rduty);
+    analogWrite(PIN_MOTOR_BIN2, 0);
   }
 }
 
