@@ -104,3 +104,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 Standard License Header
 There is no standard license header for the license
 </blockquote>
+
+## [PID_v1](https://github.com/br3ttb/Arduino-PID-Library)
+
+Licensed under the MIT License.
+
+<blockquote>
+Arduino PID Library - Version 1.2.1
+by Brett Beauregard <br3ttb@gmail.com> brettbeauregard.com
+</blockquote>
+
